@@ -1,0 +1,57 @@
+En el estado actual de tu código, no hay dos sistemas de login separados. La autenticación está centralizada y funciona de la siguiente manera:
+
+1. ¿Por qué el Login está en FastAPI (Python)?
+El microservicio de Python es el Proveedor de Identidad (Auth Server) del sistema.
+
+Él es el encargado de realizar el Login Biométrico / Facial (loginUserWithImage).
+Verifica la imagen, hace el control de biometría, valida que no tenga accesorios (gafas/gorras con YOLOv8) y compara el embedding con el de la base de datos local.
+Si el rostro coincide, FastAPI es el que genera y firma el token JWT para el usuario.
+2. ¿Qué hace Spring Boot (Java) con el Login?
+Spring Boot no tiene una función de Login en su código.
+Si revisamos su configuración de seguridad (SecurityConfig.java), tiene activado .permitAll(), lo que significa que de momento confía y deja pasar cualquier petición (actúa como un servidor transaccional).
+Spring Boot es quien almacena los datos reales del usuario (su contraseña, email, etc.) en DynamoDB. Cuando creas un usuario biométricamente en Python, FastAPI le avisa a Spring Boot (createUser) para que guarde el usuario en su base de datos principal.
+3. ¿Y NestJS (Node)?
+Tampoco tiene un endpoint de login.
+NestJS actúa como un servidor de recursos protegidos (los documentos en S3). Utiliza una estrategia (JwtStrategy) para validar que el token JWT que le envía el cliente haya sido firmado con la clave secreta compartida (JWT_SECRET) por el microservicio de FastAPI.
+Resumen del Flujo de Autenticación:
+El usuario inicia sesión enviando su foto a FastAPI.
+FastAPI valida la biometría contra su base de datos local y, si es correcto, genera un JWT.
+El frontend (móvil o web) guarda ese JWT.
+Cuando el frontend necesita interactuar con NestJS (subir/descargar archivos), le envía el JWT en la cabecera. NestJS valida la firma del token y le da acceso a S3.
+
+
+
+
+Esta es la confusión más común en arquitecturas distribuidas con IA. Vamos a aclararlo paso a paso para que veas que todo encaja perfectamente:
+
+1. ¿Por qué FastAPI tiene un Register/Login y Spring Boot también tiene mutaciones de creación?
+Cada uno hace un trabajo diferente debido a sus capacidades:
+
+FastAPI (El motor biométrico):
+Spring Boot no sabe procesar videos ni imágenes, ni sabe de IA o redes neuronales.
+Por eso, el celular le envía el video/foto a FastAPI. FastAPI extrae el vector del rostro (embedding de 128 números) y verifica si la persona está viva.
+Una vez validado el rostro, FastAPI le dice a Spring Boot: "Oye, ya validé a este usuario biométricamente, guárdame su correo, contraseña y el ID de su video en tu base de datos principal" (ejecutando internamente la mutación createUserFromPython en Spring Boot).
+Spring Boot (El gestor de base de datos de negocio):
+Tiene la mutación crearUsuario para crear usuarios de forma administrativa (por ejemplo, si un Administrador quiere registrar a mano a un Reclutador o a otro Admin usando teclado, sin biometría).
+2. ¿Cómo se maneja el Rol en el Registro de FastAPI si la mutación no pide "Rol"?
+Si te fijas, la mutación de FastAPI registerUserWithVideo es exclusiva para la aplicación móvil del Candidato.
+
+El flujo de roles se resuelve de forma implícita y explícita así:
+
+A. Para el Candidato (Registro Biométrico por Celular):
+El celular solo registra Candidatos. Por lo tanto, no hace falta pasarle un rol a FastAPI; el sistema ya sabe que cualquier persona que se registre con video desde la app móvil es un Candidato.
+Cuando FastAPI llama a Spring Boot para guardar el usuario (createUserFromPython), se crea el registro en la tabla Usuario. Al ser un registro proveniente de la app móvil, el sistema asume por defecto que su rol es el de Candidato (o se asocia al ID del rol candidato por defecto).
+B. Para Reclutador y Administrador (Registro Web):
+Como ellos no usan biometría facial para registrarse (se registran desde el portal web usando formularios), sus cuentas se crean llamando directamente a Spring Boot mediante crearUsuario (pasando el rol_id del Administrador o Reclutador) o crearReclutador.
+En resumen:
+FastAPI hace la parte pesada de IA (Biometría) y luego delega la persistencia de datos a Spring Boot.
+El Rol de Candidato se asume por defecto en los registros que vienen desde FastAPI (móvil).
+Los Roles de Reclutador y Administrador se asignan manualmente mediante el rol_id en las mutaciones directas de Spring Boot (web).
+-----------------------------
+
+aaa entonces miraa apar crea radminsitradro  ,reclutador se crea con spront boot novee
+9:40 AM
+¡Exactamente! Lo has entendido a la perfección.
+
+Administradores y Reclutadores: Se crean directamente a través de Spring Boot (generalmente desde el panel web de Angular usando las mutaciones crearUsuario con el rol_id correspondiente, o crearReclutador). Ellos no necesitan registrar su rostro ni grabarse en video.
+Candidatos: Son los únicos que se registran y autentican mediante FastAPI (desde la aplicación móvil usando biometría facial y video), y FastAPI se encarga de registrarlos automáticamente por detrás en Spring Boot como usuarios estándar.

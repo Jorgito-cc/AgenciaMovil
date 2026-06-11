@@ -79,6 +79,11 @@ export default function MyApplicationsScreen() {
                   <Ionicons name="calendar-outline" size={14} /> {item.fecha}
                 </Text>
               </View>
+
+              <View style={styles.blockchainSeal}>
+                <Ionicons name="shield-checkmark" size={14} color="#16a34a" />
+                <Text style={styles.blockchainText}>Auditoría Blockchain Activa</Text>
+              </View>
             </View>
           )}
         />
@@ -171,5 +176,21 @@ const styles = StyleSheet.create({
     color: Colors.textTertiary,
     fontSize: FontSize.md,
     textAlign: 'center',
+  },
+  blockchainSeal: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: Spacing.sm,
+    backgroundColor: '#f0fdf4',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: BorderRadius.sm,
+    alignSelf: 'flex-start',
+  },
+  blockchainText: {
+    fontSize: FontSize.xs,
+    color: '#16a34a',
+    fontWeight: 'bold',
   }
 });

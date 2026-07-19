@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import * as SecureStore from 'expo-secure-store';
+import { registerForPushNotificationsAsync, sendTokenToBackend } from '../services/pushNotificationService';
 
 export type UserRole = 'candidato' | 'reclutador' | 'administrador' | null;
 
@@ -45,7 +46,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const token = await SecureStore.getItemAsync('auth_token');
       
       if (userStr && token) {
-        setUser(JSON.parse(userStr));
+        const parsedUser = JSON.parse(userStr);
+        setUser(parsedUser);
+        
+        // Registrar token para notificaciones
+        registerForPushNotificationsAsync().then((pushToken) => {
+          if (pushToken) {
+            sendTokenToBackend(parsedUser.id, parsedUser.email, pushToken);
+          }
+        });
       }
     } catch (e) {
       console.error('Error loading session:', e);
@@ -59,6 +68,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       await SecureStore.setItemAsync('auth_token', token);
       await SecureStore.setItemAsync('auth_user', JSON.stringify(user));
       setUser(user);
+      
+      // Registrar token al iniciar sesión
+      registerForPushNotificationsAsync().then((pushToken) => {
+        if (pushToken) {
+          sendTokenToBackend(user.id, user.email, pushToken);
+        }
+      });
     } catch (e) {
       console.error('Error saving session:', e);
     }

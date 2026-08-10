@@ -431,3 +431,37 @@ export const LISTAR_OFERTA_TRABAJOS = gql`
     }
   }
 `;
+
+export const LISTAR_POSTULACIONES_POR_CANDIDATO = gql`
+  query ListarPostulacionesPorCandidato($candidatoId: UUID!) {
+    listarPostulacionesPorCandidato(candidatoId: $candidatoId) {
+      id
+      fecha
+      fase_alcanzada
+      id_cv
+      candidato {
+        id
+        nombre
+        apellido
+        email
+        sueldo_esperado
+        modalidad_preferida
+        nivel_educativo
+        nacionalidad
+      }
+      oferta {
+        id
+        titulo
+        sueldo
+        reclutador {
+          id
+          nombre
+          apellido
+          empresa {
+            nombre_comercial
+          }
+        }
+      }
+    }
+  }
+`;

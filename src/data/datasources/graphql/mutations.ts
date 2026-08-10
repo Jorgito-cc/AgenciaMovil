@@ -88,6 +88,21 @@ export const LINK_BIOMETRIC_WITH_VIDEO = gql`
 `;
 
 // ============================================================
+// MUTATIONS - FastAPI (Python) - IA y Chatbot
+// ============================================================
+
+export const CHATBOT_CONSULTAR = gql`
+  mutation ChatbotConsultar($mensajeTexto: String, $audioBase64: String) {
+    chatbotConsultar(mensajeTexto: $mensajeTexto, audioBase64: $audioBase64) {
+      success
+      respuesta
+      transcripcion
+      error
+    }
+  }
+`;
+
+// ============================================================
 // MUTATIONS - Spring Boot (Java) - Datos de Negocio
 // Backend: Spring Boot (localhost:8080/graphql)
 // Context: { clientName: 'springboot' }
@@ -805,6 +820,27 @@ export const ACTUALIZAR_VIDEO_ID = gql`
       nombre
       apellido
       email
+    }
+  }
+`;
+
+/** Extracción de CV usando IA en FastAPI */
+export const READ_CV_FROM_IMAGE = gql`
+  mutation ReadCvFromImage($imageBase64: String!, $token: String!) {
+    readCvFromImage(imageBase64: $imageBase64, token: $token) {
+      success
+      message
+      nombre
+      apellido
+      email
+      telefono
+      sueldoEsperado
+      modalidadPreferida
+      nivelEducativo
+      nacionalidad
+      mesesExperienciaTotal
+      habilidades
+      error
     }
   }
 `;

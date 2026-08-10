@@ -3,13 +3,15 @@ import { View, Text, StyleSheet, FlatList, ActivityIndicator, Pressable } from '
 import { useQuery } from '@apollo/client/react';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Spacing, FontSize, BorderRadius, Shadows } from '../../../core/config/theme';
-import { LISTAR_POSTULACIONES } from '../../../data/datasources/graphql/queries';
+import { LISTAR_POSTULACIONES_POR_CANDIDATO } from '../../../data/datasources/graphql/queries';
 import { useAuth } from '../../../core/context/AuthContext';
 
 export default function MyApplicationsScreen() {
   const { user } = useAuth();
-  const { data, loading, error, refetch } = useQuery<any>(LISTAR_POSTULACIONES, {
+  const { data, loading, error, refetch } = useQuery<any>(LISTAR_POSTULACIONES_POR_CANDIDATO, {
+    variables: { candidatoId: user?.id },
     context: { clientName: 'springboot' },
+    skip: !user?.id,
   });
 
   if (loading) {
@@ -31,8 +33,8 @@ export default function MyApplicationsScreen() {
     );
   }
 
-  // Filter applications by current logged in user
-  const myApplications = data?.listarPostulaciones?.filter((p: any) => p.candidato?.id === user?.id) || [];
+  // Read pre-filtered candidate applications from server
+  const myApplications = data?.listarPostulacionesPorCandidato || [];
 
   const getPhaseColor = (fase: string) => {
     switch (fase?.toLowerCase()) {

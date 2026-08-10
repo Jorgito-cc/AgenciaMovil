@@ -1,9 +1,10 @@
 import { ApolloClient, InMemoryCache, HttpLink, ApolloLink } from '@apollo/client';
 
 // URLs de los backends
+
 // Para dispositivo físico, usa la IP local de tu máquina (ej: 192.168.0.6)
 // Para emulador Android, usa 10.0.2.2
-const FASTAPI_URL = 'https://fastapisw2-production.up.railway.app/graphql';
+const FASTAPI_URL = 'https://fastapi-production-f563.up.railway.app/graphql';
 const SPRING_BOOT_URL = 'https://sprintboot.jorgechoquecalle.engineer/graphql';
 const NESTJS_URL = 'https://nestsw2.jorgechoquecalle.engineer/graphql';
 

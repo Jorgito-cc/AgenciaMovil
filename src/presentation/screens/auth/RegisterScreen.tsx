@@ -188,10 +188,10 @@ export default function RegisterScreen({ navigation }: Props) {
       }
     } catch (error: any) {
       Alert.alert(
-        'Error de conexión',
-        'No se pudo conectar con el servidor. Verifica tu conexión a internet.',
+        'Error de conexión (Detalle)',
+        `No se pudo conectar. Detalles: ${error?.message || JSON.stringify(error)}`
       );
-      console.error('Register error:', error);
+      console.error('Register error details:', error);
     }
   };
 
@@ -513,6 +513,7 @@ export default function RegisterScreen({ navigation }: Props) {
             facing="front"
             mode="video"
             mute={true}
+            videoQuality="480p"
           />
           <View style={styles.cameraOverlay} pointerEvents="none">
             <View style={styles.faceGuide} />
